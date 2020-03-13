@@ -14,17 +14,20 @@ let selection;
 let replayOn = false;
 let currentStep = 0;
 let replaySteps = [];
+let stepViewboxes = [];
 let initialViewbox;
 
 let errorStep = 0;
 
-let modal = document.getElementById('modal');
-let startReplayButton = document.getElementById('buttonStartReplay');
-let nextStepButton = document.getElementById('buttonNextStep');
-let previousStepButton = document.getElementById('buttonPreviousStep');
-let stopReplayButton = document.getElementById('buttonStopReplay');
-let currentReplayStepLabel = document.getElementById('replayStep');
-let incompleteStoryDialog = document.getElementById('incompleteStoryInfo');
+const modal = document.getElementById('modal');
+const canvasDOM = document.getElementById('canvas');
+const logoContainer = document.getElementsByClassName('logoContainer')[0];
+const startReplayButton = document.getElementById('buttonStartReplay');
+const nextStepButton = document.getElementById('buttonNextStep');
+const previousStepButton = document.getElementById('buttonPreviousStep');
+const stopReplayButton = document.getElementById('buttonStopReplay');
+const currentReplayStepLabel = document.getElementById('replayStep');
+const incompleteStoryDialog = document.getElementById('incompleteStoryInfo');
 
 export function getReplayOn() {
   return replayOn;
@@ -139,6 +142,8 @@ export function initReplay(inCanvas, inSelection) {
       replayOn = false;
       currentStep = 0;
       canvas.viewbox(initialViewbox);
+
+      stepViewboxes = [];
     }
   });
 }
@@ -243,6 +248,8 @@ export function getAllNotShown(allObjects, shownElements) {
 function presentationMode() {
 
   removeSelectionAndEditing();
+  hideLogos();
+  addPaddingToCanvas();
 
   const contextPadElements = document.getElementsByClassName('djs-context-pad');
   const paletteElements = document.getElementsByClassName('djs-palette');
@@ -265,6 +272,7 @@ function presentationMode() {
 
   const headlineAndButtons = document.getElementById('headlineAndButtons');
   headlineAndButtons.style.gridTemplateColumns = 'auto 230px 3px';
+
 
   let i = 0;
   for (i = 0; i < contextPadElements.length; i++) {
@@ -289,6 +297,9 @@ function removeSelectionAndEditing() {
 }
 
 function editMode() {
+  showLogos();
+  removePaddingFromCanvas();
+
   let contextPadElements = document.getElementsByClassName('djs-context-pad');
   let paletteElements = document.getElementsByClassName('djs-palette');
 
@@ -311,6 +322,7 @@ function editMode() {
 
   let headlineAndButtons = document.getElementById('headlineAndButtons');
   headlineAndButtons.style.gridTemplateColumns = 'auto 390px 3px';
+
 
   let i = 0;
   for (i = 0; i < contextPadElements.length; i++) {
@@ -356,78 +368,57 @@ function showCurrentStep() {
     domObject.style.display = 'block';
   });
 
-  // if (currentStepNotInView()) {
-  //   focusOnActiveActivity();
-  // }
-}
+  canvas.viewbox(initialViewbox);
+  if (stepViewboxes[currentStep] == null) {
+    if (currentStepFitsInWindow()) {
+      const stepViewBox = canvas.viewbox();
+      const viewport = document.getElementsByClassName('viewport')[0];
+      const boundingRectangle = viewport.getBoundingClientRect();
 
-/*
-function currentStepNotInView() {
-  const currentViewbox = canvas.viewbox();
+      stepViewBox.x = boundingRectangle.x;
+      stepViewBox.y = boundingRectangle.y - 50;
 
-  const step = replaySteps[currentStep];
-
-  let elements = [];
-  step.targets.forEach(target => {
-    elements.push(target);
-  });
-
-  let initialElement = step.source;
-  let stepBounds = {
-    x: initialElement.x,
-    y: initialElement.y,
-    width: initialElement.width,
-    height: initialElement.height
-  };
-  elements.forEach(element => {
-    if (element.x < stepBounds.x) {
-      stepBounds.x = element.x;
+      stepViewboxes[currentStep] = stepViewBox;
     } else {
-      if (stepBounds.width < element.x + element.width) {
-        stepBounds.width = element.x + element.width;
-      }
-    }
-    if (element.y < stepBounds.y) {
-      stepBounds.y = element.y;
-    } else {
-      if (stepBounds.height < element.y + element.height) {
-        stepBounds.height = element.y + element.height;
-      }
-    }
-  });
-
-  if (currentViewbox.x < stepBounds.x && currentViewbox.y < stepBounds.y) {
-    if (
-      currentViewbox.x + currentViewbox.width >
-      stepBounds.x + stepBounds.width
-    ) {
-      if (
-        currentViewbox.y + currentViewbox.height >
-        stepBounds.y + stepBounds.height
-      ) {
-        return false;
-      }
+      canvas.zoom('fit-viewport');
+      console.log(canvas.viewbox());
     }
   }
-  return true;
+
+  canvas.viewbox(stepViewboxes[currentStep]);
 }
 
-function focusOnActiveActivity() {
-  const step = replaySteps[currentStep];
-  const activitiesInStep = step.activities;
-  const activityToFocusOn = activitiesInStep[0];
-  const elX = activityToFocusOn.waypoints[0].x - initialViewbox.width / 2;
-  const elY = activityToFocusOn.waypoints[0].y - initialViewbox.height / 2;
-  let stepViewbox = {
-    x: elX,
-    y: elY,
-    height: initialViewbox.height,
-    width: initialViewbox.width,
-    scale: initialViewbox.scale,
-    outer: initialViewbox.outer,
-    inner: initialViewbox.inner
-  };
+function currentStepFitsInWindow() {
+  const currentViewbox = canvas.viewbox();
+  const boundingRectangle = canvas.viewbox().inner;
 
-  canvas.viewbox(stepViewbox);
+  const stepHeight = boundingRectangle.height;
+  const stepWidth = boundingRectangle.width + 50;
+
+  const viewBoxHeight = currentViewbox.width;
+  const viewBoxWidth = currentViewbox.height;
+
+  console.log(currentViewbox);
+
+  if (viewBoxHeight >= stepHeight && viewBoxWidth >= stepWidth) {
+    return true;
+  }
+  return false;
 }
-*/
+
+function hideLogos() {
+  logoContainer.style.display = 'none';
+}
+
+function showLogos() {
+  logoContainer.style.display = 'block';
+}
+
+function addPaddingToCanvas() {
+  canvasDOM.style.right = '3px';
+}
+
+
+function removePaddingFromCanvas() {
+  canvasDOM.style.right = 'unset';
+}
