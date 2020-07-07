@@ -372,20 +372,111 @@ function showCurrentStep() {
   if (stepViewboxes[currentStep] == null) {
     if (currentStepFitsInWindow()) {
       const stepViewBox = canvas.viewbox();
-      const viewport = document.getElementsByClassName('viewport')[0];
-      const boundingRectangle = viewport.getBoundingClientRect();
+      const boundingRectangle = stepViewBox.inner;
 
       stepViewBox.x = boundingRectangle.x;
       stepViewBox.y = boundingRectangle.y - 50;
 
       stepViewboxes[currentStep] = stepViewBox;
     } else {
-      canvas.zoom('fit-viewport');
-      console.log(canvas.viewbox());
+      if (currentStep == 0) { // If the first step does not fin into the Viewbox, zoom to fit -> TODO check if needed
+        canvas.zoom('fit-viewport');
+        console.log('fit');
+      } else {
+        console.log(canvas.viewbox());
+        console.log('newBox');
+        findNewStepAreaAndFocus();
+      }
+
     }
   }
 
   canvas.viewbox(stepViewboxes[currentStep]);
+}
+
+function findNewStepAreaAndFocus() {
+  const previousViewbox = stepViewboxes[currentStep -1];
+  const usedArea = canvas.viewbox().inner;
+
+  const nextViewbox = JSON.parse(JSON.stringify(previousViewbox));
+
+  const areaIncrease = getAreaIncrease(previousViewbox.inner , usedArea);
+
+  if (usedArea.width > nextViewbox.width) {
+    if (areaIncrease.width > 0) {
+      nextViewbox.x += areaIncrease.width;
+    } else {
+
+      const newX = findNextStepBorder('x');
+      if (newX < nextViewbox.x) {
+        console.log('a');
+        nextViewbox.x = newX - 10; // 10 px padding
+      } else {
+
+        // TODO -> does not work correlty yet
+        nextViewbox.x = newX + nextViewbox.width - (usedArea.width - usedArea.x);
+      }
+    }
+  }
+
+  if (usedArea.height > nextViewbox.height) {
+    if (areaIncrease.height > 0) {
+      nextViewbox.y += areaIncrease.height;
+    } else {
+      const newY = findNextStepBorder('y');
+      if (newY <= nextViewbox.y) {
+        console.log('a');
+        nextViewbox.y = newY - 10; // 10 px padding
+      } else {
+
+        // TODO -> does not work correlty yet
+        nextViewbox.y = newY + nextViewbox.height - (usedArea.height - usedArea.y);
+      }
+    }
+  }
+
+  stepViewboxes[currentStep] = nextViewbox;
+  canvas.viewbox(nextViewbox);
+}
+
+function findNextStepBorder(axis) {
+  const stepObjects = [replaySteps[currentStep].source];
+  replaySteps[currentStep].targets.forEach(target => {
+    stepObjects.push(target);
+  });
+  replaySteps[currentStep].activities.forEach(activity => {
+    stepObjects.push(activity);
+  });
+
+  let border = stepObjects[0][axis];
+
+  stepObjects.forEach(object => {
+    if (object[axis] <= border) {
+      border = object[axis];
+    }
+  });
+
+  console.log(axis, border);
+  return border;
+}
+
+function getAreaIncrease(originalArea, modifiedArea) {
+  const increase = {
+    width: 0,
+    height: 0
+  };
+
+  increase.width = modifiedArea.width - originalArea.width;
+  increase.height = modifiedArea.height - originalArea.height;
+
+  if (originalArea.y > modifiedArea.y) {
+    increase.height *= -1;
+  }
+  if (originalArea.x > modifiedArea.x) {
+    increase.width *= -1;
+  }
+
+  return increase;
 }
 
 function currentStepFitsInWindow() {
@@ -395,10 +486,8 @@ function currentStepFitsInWindow() {
   const stepHeight = boundingRectangle.height;
   const stepWidth = boundingRectangle.width + 50;
 
-  const viewBoxHeight = currentViewbox.width;
-  const viewBoxWidth = currentViewbox.height;
-
-  console.log(currentViewbox);
+  const viewBoxHeight = currentViewbox.height;
+  const viewBoxWidth = currentViewbox.width;
 
   if (viewBoxHeight >= stepHeight && viewBoxWidth >= stepWidth) {
     return true;
@@ -417,7 +506,6 @@ function showLogos() {
 function addPaddingToCanvas() {
   canvasDOM.style.right = '3px';
 }
-
 
 function removePaddingFromCanvas() {
   canvasDOM.style.right = 'unset';
