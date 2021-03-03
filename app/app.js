@@ -59,7 +59,7 @@ import {
   exportConfiguration
 } from './domain-story-modeler/features/iconSetCustomization/persitence';
 import {
-  debounce
+  debounce, keyReleased, positionsMatch
 } from './domain-story-modeler/util/helpers';
 import {
   isDirty,
@@ -67,6 +67,7 @@ import {
 } from './domain-story-modeler/features/export/dirtyFlag';
 import DSElementHandler from './domain-story-modeler/modeler/UpdateHandler/DSElementHandler';
 import headlineAndDescriptionUpdateHandler from './domain-story-modeler/modeler/UpdateHandler/headlineAndDescriptionUpdateHandler';
+import { getAutosaveIntervall, loadAutosaveIntervall, setAutoSaveIntervall, startAutosaves, stopAutosaves } from './domain-story-modeler/features/autosave/autosave';
 
 const modeler = new DomainStoryModeler({
   container: '#canvas',
@@ -90,10 +91,10 @@ const selection = modeler.get('selection');
 
 initialize(canvas, elementRegistry, version, modeler, eventBus, fnDebounce);
 
-// interal variables
+// ---- Interal variables
 let keysPressed = [];
 
-// HTML-Elements
+// ---- HTML-Elements
 let modal = document.getElementById('modal'),
     arrow = document.getElementById('arrow'),
 
@@ -120,6 +121,7 @@ let modal = document.getElementById('modal'),
     multipleNumberAllowedCheckBox = document.getElementById(
       'multipleNumberAllowed'
     ),
+    autoSaveIntervallInput = document.getElementById('autosaveIntervallInput'),
 
     // dialogs
     headlineDialog = document.getElementById('dialog'),
@@ -132,6 +134,7 @@ let modal = document.getElementById('modal'),
     keyboardShortcutInfo = document.getElementById('keyboardShortcutInfo'),
     downloadDialog = document.getElementById('downloadDialog'),
     noContentOnCanvasDialog = document.getElementById('noContentOnCanvasInfo'),
+    autoSaveLoadDialog = document.getElementById('autosaveLoadDialog'),
 
     // container
     iconCustomizationContainer = document.getElementById(
@@ -145,6 +148,9 @@ let modal = document.getElementById('modal'),
     ),
 
     // buttons
+    autoSaveSwitch = document.getElementById('autosaveSwitch-input'),
+    autoSaveIntervallInputButton = document.getElementById('saveAutosaveIntervallButton'),
+    autoSaveLoadingDialogButton = document.getElementById('openAutosaveLoadDialogButton'),
     headlineDialogButtonSave = document.getElementById('saveButton'),
     headlineDialogButtonCancel = document.getElementById('quitButton'),
     exportButton = document.getElementById('export'),
@@ -200,7 +206,9 @@ wpsInfotext.innerText =
 wpsInfotextPart2.innerText = ' and licensed under GPLv3.';
 dstInfotext.innerText = 'Learn more about Domain Storytelling at';
 
-// ----
+autoSaveIntervallInput.value = getAutosaveIntervall();
+
+// ---- Initialize
 function initialize(
     canvas,
     elementRegistry,
@@ -222,6 +230,7 @@ function initialize(
   initReplay(canvas, selection);
   initElementRegistry(elementRegistry);
   initImports(elementRegistry, version, modeler, eventBus, fnDebounce);
+  loadAutosaveIntervall();
 
   modeler.createDiagram();
 
@@ -266,7 +275,7 @@ function initiateDSTDownload() {
   }
 }
 
-// eventBus listeners
+// ---- EventBus listeners
 eventBus.on('element.dblclick', function(e) {
   if (!isPlaying()) {
     const element = e.element;
@@ -344,14 +353,25 @@ eventBus.on('element.dblclick', function(e) {
   }
 });
 
-function positionsMatch(width, height, elementX, elementY, clickX, clickY) {
-  if (clickX > elementX && clickX < elementX + width) {
-    if (clickY > elementY && clickY < elementY + height) {
-      return true;
+// when in replay, do not allow any interaction on the canvas
+eventBus.on(
+  [
+    'element.click',
+    'element.dblclick',
+    'element.mousedown',
+    'drag.init',
+    'canvas.viewbox.changing',
+    'autoPlace',
+    'popupMenu.open'
+  ],
+  10000000000,
+  function(event) {
+    if (isPlaying()) {
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
-  return false;
-}
+);
 
 function activityDoubleClick(activity) {
   const source = activity.source;
@@ -393,33 +413,62 @@ function activityDoubleClick(activity) {
   };
 }
 
-// when in replay, do not allow any interaction on the canvas
-eventBus.on(
-  [
-    'element.click',
-    'element.dblclick',
-    'element.mousedown',
-    'drag.init',
-    'canvas.viewbox.changing',
-    'autoPlace',
-    'popupMenu.open'
-  ],
-  10000000000,
-  function(event) {
-    if (isPlaying()) {
-      event.stopPropagation();
-      event.preventDefault();
+function dictionaryKeyBehaviour(event) {
+  const KEY_ENTER = 13;
+  const KEY_ESC = 27;
+
+  if (event.keyCode === KEY_ENTER) {
+    dictionaryClosed(
+      commandStack,
+      activityDictionaryContainer,
+      workobjectDictionaryContainer
+    );
+    dictionaryDialog.style.display = 'none';
+    modal.style.display = 'none';
+  } else if (event.keyCode === KEY_ESC) {
+    dictionaryDialog.style.display = 'none';
+    modal.style.display = 'none';
+  }
+}
+
+function checkPressedKeys(keyCode, dialog, element) {
+  const KEY_ENTER = 13;
+  const KEY_SHIFT = 16;
+  const KEY_CTRL = 17;
+  const KEY_ALT = 18;
+  const KEY_ESC = 27;
+
+  keysPressed[keyCode] = true;
+
+  if (keysPressed[KEY_ESC]) {
+    closeHeadlineDialog();
+    closeActivityInputLabelWithoutNumberDialog();
+    closeActivityInputLabelWithNumberDialog();
+  } else if (
+    (keysPressed[KEY_CTRL] && keysPressed[KEY_ENTER]) ||
+    (keysPressed[KEY_ALT] && keysPressed[KEY_ENTER])
+  ) {
+    if (dialog == 'infoDialog') {
+      info.value += '\n';
+    }
+  } else if (keysPressed[KEY_ENTER] && !keysPressed[KEY_SHIFT]) {
+    if (dialog == 'titleDialog' || dialog == 'infoDialog') {
+      saveHeadlineDialog();
+    } else if (dialog == 'labelDialog') {
+      saveActivityInputLabelWithoutNumber(element);
+    } else if (dialog == 'numberDialog') {
+      saveActivityInputLabelWithNumber(element);
     }
   }
-);
+}
 
-// HTML-Element event listeners
 
 // show a dialog if there are unsaved changes in the domain Story
 window.onbeforeunload = function() {
   if (isDirty()) return true;
 };
 
+// ---- HTML-Element event listeners
 headline.addEventListener('click', function() {
   showHeadlineDialog();
 });
@@ -442,6 +491,22 @@ wpsLogoButton.addEventListener('click', function() {
 dstLogoButton.addEventListener('click', function() {
   dstLogoDialog.style.display = 'none';
   modal.style.display = 'none';
+});
+
+autoSaveIntervallInputButton.addEventListener('click', function() {
+  setAutoSaveIntervall(autoSaveIntervallInput.value);
+});
+
+autoSaveSwitch.addEventListener('click', function() {
+  if (autoSaveSwitch.value) {
+    startAutosaves();
+  } else {
+    stopAutosaves();
+  }
+});
+
+autoSaveLoadingDialogButton.addEventListener('click', function() {
+  openAutosaveLoadDialog();
 });
 
 buttonImageDownloads.addEventListener('click', function() {
@@ -482,15 +547,15 @@ titleInput.addEventListener('keyup', function(e) {
 });
 
 info.addEventListener('keydown', function(e) {
-  checkPressedKeys(e.keyCode, 'infoDialog');
+  checkPressedKeys(e.key, 'infoDialog');
 });
 
 info.addEventListener('keyup', function(e) {
-  keyReleased(keysPressed, e.keyCode);
+  keyReleased(keysPressed, e.key);
 });
 
 activityInputLabelWithNumber.addEventListener('keyup', function(e) {
-  keyReleased(keysPressed, e.keyCode);
+  keyReleased(keysPressed, e.key);
 });
 
 activityDictionaryContainer.addEventListener('keydown', function(e) {
@@ -574,58 +639,7 @@ exportConfigurationButton.addEventListener('click', function() {
   exportConfiguration();
 });
 
-// -----
-
-function dictionaryKeyBehaviour(event) {
-  const KEY_ENTER = 13;
-  const KEY_ESC = 27;
-
-  if (event.keyCode === KEY_ENTER) {
-    dictionaryClosed(
-      commandStack,
-      activityDictionaryContainer,
-      workobjectDictionaryContainer
-    );
-    dictionaryDialog.style.display = 'none';
-    modal.style.display = 'none';
-  } else if (event.keyCode === KEY_ESC) {
-    dictionaryDialog.style.display = 'none';
-    modal.style.display = 'none';
-  }
-}
-
-function checkPressedKeys(keyCode, dialog, element) {
-  const KEY_ENTER = 13;
-  const KEY_SHIFT = 16;
-  const KEY_CTRL = 17;
-  const KEY_ALT = 18;
-  const KEY_ESC = 27;
-
-  keysPressed[keyCode] = true;
-
-  if (keysPressed[KEY_ESC]) {
-    closeHeadlineDialog();
-    closeActivityInputLabelWithoutNumberDialog();
-    closeActivityInputLabelWithNumberDialog();
-  } else if (
-    (keysPressed[KEY_CTRL] && keysPressed[KEY_ENTER]) ||
-    (keysPressed[KEY_ALT] && keysPressed[KEY_ENTER])
-  ) {
-    if (dialog == 'infoDialog') {
-      info.value += '\n';
-    }
-  } else if (keysPressed[KEY_ENTER] && !keysPressed[KEY_SHIFT]) {
-    if (dialog == 'titleDialog' || dialog == 'infoDialog') {
-      saveHeadlineDialog();
-    } else if (dialog == 'labelDialog') {
-      saveActivityInputLabelWithoutNumber(element);
-    } else if (dialog == 'numberDialog') {
-      saveActivityInputLabelWithNumber(element);
-    }
-  }
-}
-
-// dialog functions
+// ---- Dialog functions
 
 function showNoContentDialog() {
   noContentOnCanvasDialog.style.display = 'block';
@@ -647,6 +661,17 @@ function closeHeadlineDialog() {
 function closeImageDownloadDialog() {
   downloadDialog.style.display = 'none';
   modal.style.display = 'none';
+}
+
+function openAutosaveLoadDialog() {
+  autoSaveLoadDialog.style.display='block';
+  modal.style.display='block';
+}
+
+function closeAutosaveLoafDialog() {
+  autoSaveLoadDialog.style.display='none';
+  modal.style.display='none';
+
 }
 
 function showHeadlineDialog() {
@@ -818,11 +843,7 @@ function saveActivityInputLabelWithoutNumber(element) {
   cleanDictionaries();
 }
 
-function keyReleased(keysPressed, keyCode) {
-  keysPressed[keyCode] = false;
-}
-
-// SVG functions
+// ---- SVG functions
 function saveSVG(done) {
   modeler.saveSVG(done);
 }

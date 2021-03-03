@@ -96,6 +96,14 @@ export function importConfiguration(input) {
 
 export function saveIconConfiguration(elements) {
   persistStory(elements);
+  persistIconConfiguration();
+
+  if (domExists()) {
+    location.reload();
+  }
+}
+
+export function persistIconConfiguration() {
 
   let actors = getSelectedActorsDictionary();
   let workObjects = getSelectedWorkObjectsDictionary();
@@ -133,9 +141,6 @@ export function saveIconConfiguration(elements) {
   );
   localStorage.setItem(customConfigNameTag, name);
 
-  if (domExists()) {
-    location.reload();
-  }
 }
 
 export function loadConfiguration(customConfig) {

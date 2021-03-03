@@ -139,6 +139,18 @@
           <span>Domain name:</span>
           <input type="text" id="domainNameInput" value="default">
         </div>
+        <div class="autosaveOptions">
+          <div>
+            <span>Autosave</span>
+            <label class="autosaveSwitch">
+              <input class = "autosaveSwitch-input" id = "autosaveSwitch-input" type="checkbox" />
+            </label>
+            <button id="openAutosaveLoadDialogButton>">Load</button>
+            <span>Intervall</span>
+            <input style ="width: 50px;" placeholder="min" type="number" id = "autosaveIntervallInput">
+            <button id="saveAutosaveIntervallButton">Save</button>
+          </div>
+        </div>
         <div>
           <img src="./logo/unarchive.png" id="importConfigurationButton" title="import icon configuration" onclick="document.getElementById('importConfig').click()">
           <img id="exportConfigurationButton" src="./logo/archive.png" title="export icon configuration">
@@ -206,6 +218,10 @@
       <button id="numberSaveButton">Save</button>
       <button id="numberQuitButton">Cancel</button>
     </div>
+  </div>
+
+  <div id="autosaveLoadDialog" style="display: none;">
+    <ul id="AutosaveList"></ul>
   </div>
 
   <div id="labelDialog" style="display:none;">
