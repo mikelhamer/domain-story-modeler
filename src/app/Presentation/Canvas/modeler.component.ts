@@ -13,7 +13,7 @@ export class ModelerComponent implements OnInit, OnDestroy {
   modelSubscription: Subscription;
 
   constructor(private modelerService: ModelerService, private saveService: SaveService) {
-    this.modelSubscription = modelerService.modelChanges().subscribe(() => {
+    this.modelSubscription = modelerService.modelChanges()?.subscribe(() => {
       this.saveService.createSave();
     })
   }

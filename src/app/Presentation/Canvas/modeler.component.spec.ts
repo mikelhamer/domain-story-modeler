@@ -1,8 +1,10 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ModelerComponent} from 'src/app/Presentation/Canvas/modeler.component';
-import {MockProviders} from "ng-mocks";
+import { MockProvider, MockProviders } from "ng-mocks";
 import {ModelerService} from "../../Service/Modeler/modeler.service";
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 describe('ModelerComponent', () => {
   let component: ModelerComponent;
@@ -12,7 +14,9 @@ describe('ModelerComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ModelerComponent],
       providers: [
-        MockProviders(ModelerService)
+        MockProviders(ModelerService),
+        MockProvider(MatDialog),
+        MockProvider(MatSnackBar)
       ]
     }).compileComponents();
   });

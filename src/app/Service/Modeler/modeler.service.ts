@@ -14,7 +14,7 @@ import { Observable, Subject } from 'rxjs';
 })
 export class ModelerService {
   constructor(
-    private initialiserService: InitializerService,
+    private initializerService: InitializerService,
     private elementRegistryService: ElementRegistryService,
     private iconDictionaryService: IconDictionaryService,
     private domainConfigurationService: DomainConfigurationService
@@ -37,7 +37,7 @@ export class ModelerService {
   }
 
   public postInit(): void {
-    this.initialiserService.initializeDomainStoryModelerClasses();
+    this.initializerService.initializeDomainStoryModelerClasses();
     this.modeler = new DomainStoryModeler({
       container: '#canvas',
       keyboard: {
@@ -58,11 +58,11 @@ export class ModelerService {
     this.commandStack = this.modeler.get('commandStack');
     this.selection = this.modeler.get('selection');
 
-    this.initialiserService.initializeDomainStoryModelerEventHandlers(
+    this.initializerService.initializeDomainStoryModelerEventHandlers(
       this.commandStack,
       this.eventBus
     );
-    this.initialiserService.propagateDomainStoryModelerClassesToServices(
+    this.initializerService.propagateDomainStoryModelerClassesToServices(
       this.commandStack,
       this.elementRegistry,
       this.canvas,
@@ -73,7 +73,7 @@ export class ModelerService {
     const exportArtifacts = this.debounce(this.saveSVG, 500);
     this.modeler.on('commandStack.changed', exportArtifacts);
 
-    this.initialiserService.initiateEventBusListeners(
+    this.initializerService.initiateEventBusListeners(
       this.eventBus,
       this.commandStack
     );
