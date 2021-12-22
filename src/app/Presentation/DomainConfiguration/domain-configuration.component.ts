@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  CustomDomainCofiguration,
+  CustomDomainConfiguration,
   DomainConfiguration,
 } from 'src/app/Domain/Common/domainConfiguration';
 import { DomainConfigurationService } from 'src/app/Service/DomainConfiguration/domain-configuration.service';
@@ -17,7 +17,7 @@ import { DomainCustomizationService } from '../../Service/DomainConfiguration/do
   styleUrls: ['./domain-configuration.component.scss'],
 })
 export class DomainConfigurationComponent implements OnInit {
-  private domainConfigurationTypes: CustomDomainCofiguration;
+  private domainConfigurationTypes: CustomDomainConfiguration;
 
   public filter = new BehaviorSubject<IconFilterEnum>(
     IconFilterEnum.ICON_FILTER_NONE

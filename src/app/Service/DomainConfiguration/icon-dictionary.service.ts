@@ -2,21 +2,13 @@ import { Injectable } from '@angular/core';
 import { Dictionary } from 'src/app/Domain/Common/dictionary/dictionary';
 import { elementTypes } from 'src/app/Domain/Common/elementTypes';
 import { getNameFromType } from 'src/app/Utils/naming';
-import {
-  allIcons,
-  appendedIcons,
-} from 'src/app/Domain/Domain-Configuration/allIcons';
-import {
-  defaultConf,
-  IconConfiguration,
-} from 'src/app/Domain/Common/iconConfiguration';
+import { allIcons, appendedIcons, } from 'src/app/Domain/Domain-Configuration/allIcons';
+import { defaultConf, IconConfiguration, } from 'src/app/Domain/Common/iconConfiguration';
 import { Configuration } from 'src/app/Domain/Common/configuration';
 import { BusinessObject } from 'src/app/Domain/Common/businessObject';
-import {
-  CustomDomainCofiguration,
-  DomainConfiguration,
-} from 'src/app/Domain/Common/domainConfiguration';
+import { CustomDomainConfiguration, DomainConfiguration, } from 'src/app/Domain/Common/domainConfiguration';
 import { sanitizeIconName } from '../../Utils/sanitizer';
+import { DOMAIN_CONFIG_KEY, SAVE_TAG } from '../../Domain/Common/constants';
 
 export const ICON_PREFIX = 'icon-domain-story-';
 
@@ -30,7 +22,7 @@ export class IconDictionaryService {
   private allIconDictionary = new Dictionary();
   private iconDictionaryForBPMN = new Dictionary();
 
-  private customConfiguration?: CustomDomainCofiguration | DomainConfiguration;
+  private customConfiguration?: CustomDomainConfiguration | DomainConfiguration;
 
   private readonly iconConfig: IconConfiguration;
 
@@ -87,7 +79,7 @@ export class IconDictionaryService {
   }
 
   public createIconConfiguration(
-    domainConfiguration?: CustomDomainCofiguration
+    domainConfiguration?: CustomDomainConfiguration
   ): Configuration {
     if (domainConfiguration) {
       return this.iconConfig.createCustomConf(true, domainConfiguration);
@@ -95,8 +87,13 @@ export class IconDictionaryService {
     if (this.customConfiguration) {
       return this.iconConfig.createCustomConf(
         false,
-        this.customConfiguration as CustomDomainCofiguration
+        this.customConfiguration as CustomDomainConfiguration
       );
+    }
+    const customDomainConfigurationString = localStorage.getItem(DOMAIN_CONFIG_KEY);
+    if (customDomainConfigurationString) {
+      return this.iconConfig.createCustomConf(false,
+        JSON.parse(customDomainConfigurationString) as CustomDomainConfiguration)
     }
     return this.iconConfig.getDefaultConf();
   }
@@ -215,8 +212,8 @@ export class IconDictionaryService {
     return this.iconConfig;
   }
 
-  public setCusomtConfiguration(
-    customConfiguration: CustomDomainCofiguration | DomainConfiguration
+  public setCustomConfiguration(
+    customConfiguration: CustomDomainConfiguration | DomainConfiguration
   ): void {
     this.customConfiguration = customConfiguration;
   }

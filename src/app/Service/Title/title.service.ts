@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
+  DESCRIPTION_TAG,
+  DOMAIN_CONFIG_KEY,
   INITIAL_DESCRIPTION,
   INITIAL_DOMAIN_NAME,
-  INITIAL_TITLE,
+  INITIAL_TITLE, TITLE_TAG,
   VERSION,
 } from '../../Domain/Common/constants';
+import { CustomDomainConfiguration } from '../../Domain/Common/domainConfiguration';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +22,24 @@ export class TitleService {
   private domainNameSubject = new BehaviorSubject<string>(INITIAL_DOMAIN_NAME);
   private showDescription = new BehaviorSubject<boolean>(true);
   private commandStack: any;
+
+  constructor() {
+    const title = localStorage.getItem(TITLE_TAG);
+    if (title) {
+      this.title = title;
+      this.titleSubject.next(this.title);
+    }
+    const description = localStorage.getItem(DESCRIPTION_TAG);
+    if (description) {
+      this.description = description;
+      this.descriptionSubject.next(this.description);
+    }
+    const domainConfigString = localStorage.getItem(DOMAIN_CONFIG_KEY);
+    if (domainConfigString) {
+      const domainConfig = JSON.parse(domainConfigString) as CustomDomainConfiguration;
+      this.domainNameSubject.next(domainConfig.name);
+    }
+  }
 
   public setCommandStack(commandStack: any): void {
     this.commandStack = commandStack;
@@ -47,12 +68,14 @@ export class TitleService {
   private updateTitle(title: string): void {
     this.titleSubject.next(title);
     this.title = title;
+    localStorage.setItem(TITLE_TAG, title);
     document.title = title + ' - egon.io';
   }
 
   private updateDescription(description: string): void {
     this.descriptionSubject.next(description);
     this.description = description;
+    localStorage.setItem(DESCRIPTION_TAG, description);
   }
 
   public getTitleObservable(): Observable<string> {

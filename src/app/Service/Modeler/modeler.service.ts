@@ -96,7 +96,7 @@ export class ModelerService {
           .createObjectListForDSTDownload()
           .map((e) => e.businessObject);
     if (domainConfiguration) {
-      this.iconDictionaryService.setCusomtConfiguration(domainConfiguration);
+      this.iconDictionaryService.setCustomConfiguration(domainConfiguration);
       this.domainConfigurationService.loadConfiguration(domainConfiguration);
     }
 

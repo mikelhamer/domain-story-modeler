@@ -6,6 +6,11 @@ export const INITIAL_TITLE = '< title >';
 export const INITIAL_DESCRIPTION = '< description >';
 export const INITIAL_DOMAIN_NAME = 'default Domain';
 
+/** TITLE **/
+export const TITLE_TAG = 'titleTag';
+export const DESCRIPTION_TAG = 'descriptionTag';
+
+
 /** SAVE **/
 export const SAVE_TAG = 'saveTag';
 
@@ -15,6 +20,9 @@ export const AUTOSAVE_TAG = 'autosaveTag';
 export const AUTOSAVE_AMOUNT_TAG = 'autosaveAmountTag';
 export const AUTOSAVE_INTERVAL_TAG = 'autosaveIntervalTag';
 export const AUTOSAVE_ACTIVATED_TAG = 'autosaveActivatedTag';
+
+/** DOMAIN CONFIG **/
+export const DOMAIN_CONFIG_KEY = 'domainConfig';
 
 /** SNACKBAR **/
 export const SNACKBAR_DURATION = 2000;

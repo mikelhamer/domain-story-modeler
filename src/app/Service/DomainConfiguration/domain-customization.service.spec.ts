@@ -8,7 +8,7 @@ import { DomainConfigurationService } from './domain-configuration.service';
 import { ImportDomainStoryService } from '../Import/import-domain-story.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
-  CustomDomainCofiguration,
+  CustomDomainConfiguration,
   DomainConfiguration,
   testCustomDomainConfiguration,
 } from '../../Domain/Common/domainConfiguration';
@@ -39,7 +39,7 @@ describe('DomainCustomizationService', () => {
           },
         }),
         MockProvider(DomainConfigurationService, {
-          getCurrentConfigurationNamesWithoutPrefix(): CustomDomainCofiguration {
+          getCurrentConfigurationNamesWithoutPrefix(): CustomDomainConfiguration {
             return testCustomDomainConfiguration;
           },
         }),

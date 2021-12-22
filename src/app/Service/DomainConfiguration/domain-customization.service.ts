@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
-  CustomDomainCofiguration,
+  CustomDomainConfiguration,
   DomainConfiguration,
 } from '../../Domain/Common/domainConfiguration';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -15,6 +15,7 @@ import { deepCopy } from '../../Utils/deepCopy';
 import { TitleService } from '../Title/title.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
+  DOMAIN_CONFIG_KEY,
   SNACKBAR_DURATION,
   SNACKBAR_INFO,
   SNACKBAR_SUCCESS,
@@ -24,7 +25,7 @@ import {
   providedIn: 'root',
 })
 export class DomainCustomizationService {
-  private readonly domainConfigurationTypes: BehaviorSubject<CustomDomainCofiguration>;
+  private readonly domainConfigurationTypes: BehaviorSubject<CustomDomainConfiguration>;
 
   private allIconListItems = new Dictionary();
 
@@ -67,9 +68,16 @@ export class DomainCustomizationService {
     if (importedConfiguration) {
       this.importConfiguration(importedConfiguration, false);
     }
+
+    const domainConfigString = localStorage.getItem(DOMAIN_CONFIG_KEY);
+    if (domainConfigString) {
+      this.savedDomainConfiguration = JSON.parse(domainConfigString) as DomainConfiguration;
+
+    }
+    console.log(this.savedDomainConfiguration);
   }
 
-  public getDomainConfiguration(): BehaviorSubject<CustomDomainCofiguration> {
+  public getDomainConfiguration(): BehaviorSubject<CustomDomainConfiguration> {
     return this.domainConfigurationTypes;
   }
 
@@ -106,7 +114,11 @@ export class DomainCustomizationService {
   }
 
   public changeName(domainName: string): void {
+    const value = this.domainConfigurationTypes.value;
+    value.name = domainName;
+    this.domainConfigurationTypes.next(value);
     this.titleService.setDomainName(domainName);
+    this.configurationHasChanged = true;
   }
 
   public importConfiguration(
@@ -262,7 +274,7 @@ export class DomainCustomizationService {
       workObjects: defaultConfig.workObjects.entries.map(
         (entry: Entry) => entry.key
       ),
-    } as CustomDomainCofiguration);
+    } as CustomDomainConfiguration);
     this.updateAllIconBehaviourSubjects();
   }
 
@@ -283,7 +295,9 @@ export class DomainCustomizationService {
   public saveDomain(): void {
     if (this.configurationHasChanged) {
       this.savedDomainConfiguration = this.createDomainConfiguration();
-      this.snackBar.open('Configuration saved sucessfully', undefined, {
+      localStorage.setItem(DOMAIN_CONFIG_KEY, JSON.stringify(this.savedDomainConfiguration));
+
+      this.snackBar.open('Configuration saved successfully', undefined, {
         duration: SNACKBAR_DURATION,
         panelClass: SNACKBAR_SUCCESS,
       });

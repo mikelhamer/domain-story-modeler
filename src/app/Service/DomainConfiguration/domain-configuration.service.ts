@@ -4,7 +4,7 @@ import { IconDictionaryService } from 'src/app/Service/DomainConfiguration/icon-
 import { Dictionary } from 'src/app/Domain/Common/dictionary/dictionary';
 import { elementTypes } from 'src/app/Domain/Common/elementTypes';
 import {
-  CustomDomainCofiguration,
+  CustomDomainConfiguration,
   DomainConfiguration,
 } from 'src/app/Domain/Common/domainConfiguration';
 import { defaultConf } from '../../Domain/Common/iconConfiguration';
@@ -107,7 +107,7 @@ export class DomainConfigurationService {
     };
   }
 
-  public getCurrentConfigurationNamesWithoutPrefix(): CustomDomainCofiguration {
+  public getCurrentConfigurationNamesWithoutPrefix(): CustomDomainConfiguration {
     return {
       name: this.titleService.getDomainName() || INITIAL_DOMAIN_NAME,
       actors: this.iconDictionaryService
