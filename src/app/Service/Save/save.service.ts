@@ -21,6 +21,14 @@ export class SaveService {
   ) {
   }
 
+  public loadCurrentSave() {
+    const currentSaveString = localStorage.getItem(SAVE_TAG);
+    if (currentSaveString) {
+      const save = JSON.parse(currentSaveString) as Save;
+      this.rendererService.renderStory(JSON.parse(save.configAndDST.dst));
+    }
+  }
+
   public loadSave(save: Save): void {
     const config = JSON.parse(save.configAndDST.domain);
     const story = JSON.parse(save.configAndDST.dst);

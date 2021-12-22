@@ -20,6 +20,7 @@ export class ModelerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.modelerService.postInit();
+    this.saveService.loadCurrentSave();
   }
 
   ngOnDestroy(): void {
