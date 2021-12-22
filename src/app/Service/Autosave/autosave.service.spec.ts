@@ -6,11 +6,10 @@ import { RendererService } from '../Renderer/renderer.service';
 import { DomainConfigurationService } from '../DomainConfiguration/domain-configuration.service';
 import { ExportService } from '../Export/export.service';
 import { AutosaveStateService } from './autosave-state.service';
-import { Autosave } from '../../Domain/Autosave/autosave';
+import { Save } from '../../Domain/Save/save';
 import { testConfigAndDst } from '../../Domain/Export/configAndDst';
 import { deepCopy } from '../../Utils/deepCopy';
 import { BehaviorSubject } from 'rxjs';
-import { Autosaves } from '../../Domain/Autosave/autosaves';
 
 describe('AutosaveService', () => {
   let service: AutosaveService;
@@ -81,19 +80,6 @@ describe('AutosaveService', () => {
 
   // TODO test for activated autostart
 
-  describe('applyAutosave', () => {
-    beforeEach(() => {
-      rendererServiceSpy.importStory.and.returnValue();
-    });
-
-    it('should call rendererService.importStory', () => {
-      service.loadAutosave(
-        createEmptyAutosave(Date.now().toString().slice(0, 25))
-      );
-      expect(rendererServiceSpy.importStory).toHaveBeenCalled();
-    });
-  });
-
   describe('start & stop Autosaving', () => {
     it('should setAutosaveState true when starting', () => {
       service.startAutosaving();
@@ -112,41 +98,11 @@ describe('AutosaveService', () => {
       .subscribe((value) => expect(value).toBeFalse());
   });
 
-  describe('loadCurrentAutosaves', () => {
-    const autosaves: Autosaves = { autosaves: [] };
-
-    beforeEach(() => {
-      autosaves.autosaves = [
-        createEmptyAutosave(
-          Date.UTC(2000, 1, 1, 1, 1, 1).toString().slice(0, 25)
-        ),
-        createEmptyAutosave(Date.now().toString().slice(0, 25)),
-      ];
-    });
-
-    it('should getItem from local Storage', () => {
-      getItemSpy.and.returnValue(JSON.stringify({ autosaves: [] }));
-      const loadedAutosaves = service.loadCurrentAutosaves();
-
-      expect(getItemSpy).toHaveBeenCalledWith('autosaveTag');
-      expect(loadedAutosaves).toEqual([]);
-    });
-
-    it('should return sorted autosaves', () => {
-      getItemSpy.and.returnValue(JSON.stringify(autosaves));
-
-      const loadedAutosaves = service.loadCurrentAutosaves();
-
-      expect(getItemSpy).toHaveBeenCalled();
-      expect(loadedAutosaves).toEqual(autosaves.autosaves);
-    });
-  });
-
   afterEach(() => {
     service.stopAutosaving();
   });
 
-  function createEmptyAutosave(date: string): Autosave {
+  function createEmptyAutosave(date: string): Save {
     return {
       configAndDST: deepCopy(testConfigAndDst),
       date,

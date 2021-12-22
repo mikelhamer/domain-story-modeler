@@ -16,7 +16,8 @@ export class ModelerService {
     private initialiserService: InitializerService,
     private elementRegistryService: ElementRegistryService,
     private iconDictionaryService: IconDictionaryService,
-    private domainConfigurationService: DomainConfigurationService
+    private domainConfigurationService: DomainConfigurationService,
+
   ) {}
 
   private modeler: any;
@@ -127,6 +128,7 @@ export class ModelerService {
         // tslint:disable-next-line:no-unused-expression
         fn(this.modeler).then((svg: string) => {
           this.encoded = svg;
+          // TODO: Save here
         }) as Promise<any>;
       }, timeout);
     };

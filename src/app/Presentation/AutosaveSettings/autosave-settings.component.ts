@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AutosaveService } from '../../Service/Autosave/autosave.service';
-import { Autosave } from '../../Domain/Autosave/autosave';
+import { Save } from '../../Domain/Save/save';
 import { AutosaveStateService } from '../../Service/Autosave/autosave-state.service';
+import { SaveService } from '../../Service/Save/save.service';
 
 @Component({
   selector: 'app-autosave-settings',
@@ -9,7 +10,7 @@ import { AutosaveStateService } from '../../Service/Autosave/autosave-state.serv
   styleUrls: ['./autosave-settings.component.scss'],
 })
 export class AutosaveSettingsComponent implements OnInit {
-  autosaves: Autosave[] = [];
+  autosaves: Save[] = [];
   autosaveEnabled: boolean;
   autosaveInterval: number;
 
@@ -17,7 +18,8 @@ export class AutosaveSettingsComponent implements OnInit {
 
   constructor(
     private autosaveService: AutosaveService,
-    private autosaveStateService: AutosaveStateService
+    private autosaveStateService: AutosaveStateService,
+    private saveService: SaveService
   ) {
     this.autosaveAmount = this.autosaveService.getMaxAutosaves();
     this.autosaveInterval = this.autosaveService.getAutosaveInterval();
@@ -25,11 +27,11 @@ export class AutosaveSettingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.autosaves = this.autosaveService.loadCurrentAutosaves();
+    this.autosaves = this.saveService.loadCurrentSaves();
   }
 
-  public loadAutosave(autosave: Autosave): void {
-    this.autosaveService.loadAutosave(autosave);
+  public loadSave(save: Save): void {
+    this.saveService.loadSave(save);
   }
 
   setInterval($event: any): void {

@@ -1,6 +1,6 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Autosave</mat-card-title>
+    <mat-card-title>Save</mat-card-title>
   </mat-card-header>
   <mat-card-content class="cardContent">
     <div  class="alignSelfCenter">
@@ -36,10 +36,10 @@
   <mat-expansion-panel>
     <mat-expansion-panel-header>
       <mat-panel-title>
-        Autosaves
+        Saves
       </mat-panel-title>
     <mat-panel-description>
-      List of all Autosaves
+      List of all Saves
     </mat-panel-description>
     </mat-expansion-panel-header>
     <mat-list *ngFor="let autosave of autosaves" class="items">
@@ -47,7 +47,7 @@
         <div class = "item">
           <span class="itemSpan">{{ autosave.date }}</span>
           <div class="separator"></div>
-          <button mat-raised-button color="primary" (click)="loadAutosave(autosave)">load</button>
+          <button mat-raised-button color="primary" (click)="loadSave(autosave)">load</button>
         </div>
       </mat-list-item>
     </mat-list>
