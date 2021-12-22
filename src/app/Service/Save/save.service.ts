@@ -17,7 +17,7 @@ export class SaveService {
     private rendererService: RendererService,
     private domainConfigurationService: DomainConfigurationService,
     private exportService: ExportService,
-    private iconDistionaryService: IconDictionaryService
+    private iconDictionaryService: IconDictionaryService
   ) {
   }
 
@@ -25,15 +25,15 @@ export class SaveService {
     const config = JSON.parse(save.configAndDST.domain);
     const story = JSON.parse(save.configAndDST.dst);
 
-    const actorIcons = this.iconDistionaryService.getElementsOfType(
+    const actorIcons = this.iconDictionaryService.getElementsOfType(
       story,
       elementTypes.ACTOR
     );
-    const workObjectIcons = this.iconDistionaryService.getElementsOfType(
+    const workObjectIcons = this.iconDictionaryService.getElementsOfType(
       story,
       elementTypes.WORKOBJECT
     );
-    this.iconDistionaryService.updateIconRegistries(
+    this.iconDictionaryService.updateIconRegistries(
       actorIcons,
       workObjectIcons,
       config
@@ -47,10 +47,15 @@ export class SaveService {
 
     const date = new Date().toString().slice(0, 25);
 
-    return {
-      configAndDST,
-      date,
-    };
+    const save = {configAndDST, date};
+
+    localStorage.setItem(
+      SAVE_TAG,
+      JSON.stringify(save)
+    );
+
+    return save;
+
   }
 
   public loadCurrentSaves(): Save[] {

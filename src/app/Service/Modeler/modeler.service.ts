@@ -7,6 +7,7 @@ import { ElementRegistryService } from '../ElementRegistry/element-registry.serv
 import { IconDictionaryService } from '../DomainConfiguration/icon-dictionary.service';
 import { DomainConfigurationService } from '../DomainConfiguration/domain-configuration.service';
 import { BusinessObject } from '../../Domain/Common/businessObject';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +17,9 @@ export class ModelerService {
     private initialiserService: InitializerService,
     private elementRegistryService: ElementRegistryService,
     private iconDictionaryService: IconDictionaryService,
-    private domainConfigurationService: DomainConfigurationService,
-
-  ) {}
+    private domainConfigurationService: DomainConfigurationService
+  ) {
+  }
 
   private modeler: any;
   private canvas: any;
@@ -28,6 +29,12 @@ export class ModelerService {
   private eventBus: any;
 
   private encoded: string | undefined;
+
+  private modelChange$ = new Subject();
+
+  public modelChanges(): Observable<any> {
+    return this.modelChange$.asObservable();
+  }
 
   public postInit(): void {
     this.initialiserService.initializeDomainStoryModelerClasses();
@@ -73,7 +80,7 @@ export class ModelerService {
 
     this.modeler.createDiagram();
     // expose bpmnjs to window for debugging purposes
-    assign(window, { bpmnjs: this.modeler });
+    assign(window, {bpmnjs: this.modeler});
 
     this.startDebounce();
   }
@@ -86,8 +93,8 @@ export class ModelerService {
       domainStory != undefined
         ? domainStory
         : this.elementRegistryService
-            .createObjectListForDSTDownload()
-            .map((e) => e.businessObject);
+          .createObjectListForDSTDownload()
+          .map((e) => e.businessObject);
     if (domainConfiguration) {
       this.iconDictionaryService.setCusomtConfiguration(domainConfiguration);
       this.domainConfigurationService.loadConfiguration(domainConfiguration);
@@ -128,7 +135,7 @@ export class ModelerService {
         // tslint:disable-next-line:no-unused-expression
         fn(this.modeler).then((svg: string) => {
           this.encoded = svg;
-          // TODO: Save here
+          this.modelChange$.next();
         }) as Promise<any>;
       }, timeout);
     };

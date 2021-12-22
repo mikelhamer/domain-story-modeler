@@ -5,7 +5,12 @@ import { ExportService } from '../Export/export.service';
 import { AutosaveStateService } from './autosave-state.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { IconDictionaryService } from '../DomainConfiguration/icon-dictionary.service';
-import { AUTOSAVE_AMOUNT_TAG, AUTOSAVE_INTERVAL_TAG, MAX_AUTOSAVES, SAVE_TAG, } from '../../Domain/Common/constants';
+import {
+  AUTOSAVE_AMOUNT_TAG,
+  AUTOSAVE_INTERVAL_TAG,
+  AUTOSAVE_TAG,
+  MAX_AUTOSAVES,
+} from '../../Domain/Common/constants';
 import { SaveService } from '../Save/save.service';
 
 @Injectable({
@@ -82,9 +87,10 @@ export class AutosaveService {
       if (currentSaves.length > this.maxAutosaves) {
         currentSaves.pop();
       }
-      currentSaves.unshift(this.saveService.createSave());
+      const save = this.saveService.createSave();
+      currentSaves.unshift(save);
       localStorage.setItem(
-        SAVE_TAG,
+        AUTOSAVE_TAG,
         JSON.stringify({saves: currentSaves})
       );
     }, this.autosaveInterval.getValue() * 60000);
